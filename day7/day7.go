@@ -11,13 +11,13 @@ import (
 
 func solveEquation(result int, numbers []int, operations int) bool {
 	length := len(numbers) - 1
-    combinations := int(math.Pow(float64(operations), float64(length)))
+	combinations := int(math.Pow(float64(operations), float64(length)))
 
 	for i := 0; i < combinations; i++ {
 		sum := numbers[0]
 
 		for j := length - 1; j >= 0; j-- {
-			operation :=  (i / int(math.Pow(float64(operations), float64(j)))) % operations 
+			operation := (i / int(math.Pow(float64(operations), float64(j)))) % operations
 			num := numbers[length-j]
 
 			if operation == 0 {
@@ -25,8 +25,8 @@ func solveEquation(result int, numbers []int, operations int) bool {
 			} else if operation == 1 {
 				sum += num
 			} else {
-                sum = concatenateNums(sum, num)
-            }
+				sum = concatenateNums(sum, num)
+			}
 
 			if sum > result {
 				break
@@ -67,7 +67,7 @@ func main() {
 
 		result, _ := strconv.Atoi(strings.Replace(equation[0], ":", "", 1))
 		numbers := []int{}
-        for _, num := range equation[1:] {
+		for _, num := range equation[1:] {
 			conv, _ := strconv.Atoi(num)
 			numbers = append(numbers, conv)
 		}

@@ -14,7 +14,7 @@ func quickSort(a []int) []int {
 	left, right := 0, len(a)-1
 
 	// Pick a pivot
-	pivotIndex := len(a)-2 
+	pivotIndex := len(a) - 2
 
 	// Move the pivot to the right
 	a[pivotIndex], a[right] = a[right], a[pivotIndex]
@@ -54,28 +54,27 @@ func calculateTotalDistance(leftList []int, rightList []int) int {
 	return totalDistance
 }
 
+func calculateSimilarity(leftList []int, rightList []int) int {
+	rightMap := make(map[int]int)
+	similarity := 0
 
-func calculateSimilarity(leftList []int, rightList []int) int { 
-   rightMap := make(map[int]int) 
-   similarity := 0
+	for _, num := range rightList {
+		_, ok := rightMap[num]
+		if ok {
+			rightMap[num]++
+		} else {
+			rightMap[num] = 1
+		}
+	}
 
-   for _, num := range rightList {
-       _, ok := rightMap[num]
-       if ok {
-           rightMap[num]++;
-       } else {
-           rightMap[num] = 1 
-       }
-   }
+	for _, num := range leftList {
+		count, ok := rightMap[num]
+		if ok {
+			similarity += num * count
+		}
+	}
 
-   for _, num := range leftList {
-       count, ok := rightMap[num]
-       if ok {
-         similarity += num * count
-       }
-   }
-
-   return similarity
+	return similarity
 }
 
 func main() {
@@ -106,6 +105,6 @@ func main() {
 		rightList = append(rightList, rightValue)
 	}
 
-    println("Distance: ", calculateTotalDistance(leftList, rightList))
-    println("Similiarity: ", calculateSimilarity(leftList, rightList))
+	println("Distance: ", calculateTotalDistance(leftList, rightList))
+	println("Similiarity: ", calculateSimilarity(leftList, rightList))
 }
