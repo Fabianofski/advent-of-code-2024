@@ -1,22 +1,42 @@
 package main
 
 import (
-	"encoding/csv"
+	"bufio"
+	"fmt"
 	"os"
+	"strconv"
 )
 
 func main() {
 	f, _ := os.Open("test_input.txt")
 	defer f.Close()
 
-	r := csv.NewReader(f)
+	scanner := bufio.NewScanner(f)
+	score := 50
+	code := 0
 
-	records, err := r.ReadAll()
-	if err != nil {
-		panic(err)
-	}
+	for scanner.Scan() {
+		line := scanner.Text()
+		negative := line[0] == 'L'
+		value, err := strconv.Atoi(line[1:])
+		if err != nil {
+			panic("???")
+		}
 
-	for _, record := range records {
-		println(record)
+		fmt.Printf("Left: %t by %d\n", negative, value)
+		if negative {
+			score = (score - value) % 100
+			if score < 0 {
+				score = 100 + score
+			}
+		} else {
+			score = (score + value) % 100
+		}
+		fmt.Printf("Score: %d\n", score)
+
+		if score == 0 {
+			code++
+		}
 	}
+	println(code)
 }
