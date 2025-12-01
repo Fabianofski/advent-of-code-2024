@@ -14,6 +14,8 @@ func main() {
 	scanner := bufio.NewScanner(f)
 	score := 50
 	code := 0
+	codePart2 := 0
+	fmt.Printf("Score: %d\n", score)
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -23,20 +25,51 @@ func main() {
 			panic("???")
 		}
 
-		fmt.Printf("Left: %t by %d\n", negative, value)
 		if negative {
+			fmt.Printf("Left by %d\n", value)
+		} else {
+			fmt.Printf("Right by %d\n", value)
+		}
+
+		distanceToZero := 0
+		if negative {
+			if score == 0 {
+				distanceToZero = 100
+			} else {
+				distanceToZero = score
+			}
 			score = (score - value) % 100
 			if score < 0 {
 				score = 100 + score
 			}
 		} else {
+			if score == 0 {
+				distanceToZero = 100
+			} else {
+				distanceToZero = 100 - score
+			}
 			score = (score + value) % 100
 		}
-		fmt.Printf("Score: %d\n", score)
+
+		if value >= distanceToZero {
+			codePart2++
+			value -= distanceToZero
+		}
+
+		for {
+			value -= 100
+			if value < 0 {
+				break
+			}
+			codePart2++
+		}
 
 		if score == 0 {
 			code++
 		}
+		fmt.Printf("Score: %d\n", score)
+		fmt.Println()
 	}
-	println(code)
+	fmt.Printf("Code Part 1 %d\n", code)
+	fmt.Printf("Code Part 2 %d\n", codePart2)
 }
