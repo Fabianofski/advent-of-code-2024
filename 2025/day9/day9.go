@@ -18,31 +18,6 @@ type Area struct {
 	Area         int
 }
 
-func printMap(tiles []Position) {
-	width := 0
-	height := 0
-	tilesMap := map[Position]string{}
-	for _, tile := range tiles {
-		tilesMap[tile] = "X"
-		if tile.X > width {
-			width = tile.X + 2
-		}
-		if tile.Y > height {
-			height = tile.Y + 2
-		}
-	}
-	for y := range height {
-		for x := range width {
-			if val, ok := tilesMap[Position{X: x, Y: y}]; ok {
-				fmt.Print(val)
-			} else {
-				fmt.Print(".")
-			}
-		}
-		fmt.Println()
-	}
-}
-
 func calcArea(pos1 Position, pos2 Position) int {
 	width := int(math.Abs(float64(pos1.X-pos2.X))) + 1
 	height := int(math.Abs(float64(pos1.Y-pos2.Y))) + 1
@@ -50,28 +25,41 @@ func calcArea(pos1 Position, pos2 Position) int {
 	return area
 }
 
-func isInBetween(largestArea Area, pos Position) bool {
-	betweenX := (pos.X >= largestArea.Tile1.X && pos.X <= largestArea.Tile2.X) || (pos.X >= largestArea.Tile2.X && pos.X <= largestArea.Tile1.X)
-	betweenY := (pos.Y >= largestArea.Tile1.Y && pos.Y <= largestArea.Tile2.Y) || (pos.Y >= largestArea.Tile2.Y && pos.Y <= largestArea.Tile1.Y)
-	return betweenX && betweenY
+func containsAir(pos1 Position, pos2 Position, bounds map[int]Position) bool {
+	bl := Position{X: min(pos1.X, pos2.X), Y: min(pos1.Y, pos2.Y)}
+	tr := Position{X: max(pos1.X, pos2.X), Y: max(pos1.Y, pos2.Y)}
+	for y := bl.Y; y <= tr.Y; y++ {
+		if bounds, exists := bounds[y]; exists {
+			if bl.X < bounds.X || tr.X > bounds.Y {
+				return true
+			}
+		} else {
+			return true
+		}
+	}
+	return false
 }
 
-func calcLargestArea(redTiles []Position, tiles []Position) Area {
-	largestArea := Area{}
+func calcLargestArea(redTiles []Position, tiles map[int]Position) (Area, Area) {
+	largestArea1 := Area{}
+	largestArea2 := Area{}
 	for i, tile1 := range redTiles {
-		for _, tile2 := range tiles[i+1:] {
-			if largestArea.Area != 0 && isInBetween(largestArea, tile2) && isInBetween(largestArea, tile1) {
-				continue
-			}
+		for _, tile2 := range redTiles[i+1:] {
 			area := calcArea(tile1, tile2)
-			if area > largestArea.Area {
-				largestArea.Area = area
-				largestArea.Tile1 = tile1
-				largestArea.Tile2 = tile2
+			if area > largestArea1.Area {
+				largestArea1.Area = area
+				largestArea1.Tile1 = tile1
+				largestArea1.Tile2 = tile2
+			}
+
+			if area > largestArea2.Area && !containsAir(tile1, tile2, tiles) {
+				largestArea2.Area = area
+				largestArea2.Tile1 = tile1
+				largestArea2.Tile2 = tile2
 			}
 		}
 	}
-	return largestArea
+	return largestArea1, largestArea2
 }
 
 func getDirection(pos1 Position, pos2 Position) Position {
@@ -92,14 +80,24 @@ func getDirection(pos1 Position, pos2 Position) Position {
 	return direction
 }
 
-func fillGreenTiles(redTiles []Position) []Position {
-	greenAndRedTiles := []Position{}
+func fillGreenTiles(redTiles []Position) map[int]Position {
+	boundaries := map[int]Position{}
 	for i, tile := range redTiles {
 		nextTile := redTiles[(i+1)%len(redTiles)]
 		direction := getDirection(tile, nextTile)
 		newTile := Position{X: tile.X, Y: tile.Y}
 		for {
-			greenAndRedTiles = append(greenAndRedTiles, newTile)
+			if bounds, exists := boundaries[newTile.Y]; exists {
+				if newTile.X > bounds.Y {
+					bounds.Y = newTile.X
+				}
+				if newTile.X < bounds.X {
+					bounds.X = newTile.X
+				}
+				boundaries[newTile.Y] = bounds
+			} else {
+				boundaries[newTile.Y] = Position{X: newTile.X, Y: newTile.X}
+			}
 			if newTile == nextTile {
 				break
 			}
@@ -108,7 +106,7 @@ func fillGreenTiles(redTiles []Position) []Position {
 		}
 	}
 
-	return greenAndRedTiles
+	return boundaries
 }
 
 func main() {
@@ -127,13 +125,8 @@ func main() {
 		redTiles = append(redTiles, tile)
 	}
 
-	greenAndRedTiles := fillGreenTiles(redTiles)
-	printMap(redTiles)
-
-	part1 := calcLargestArea(redTiles, redTiles).Area
-	fmt.Printf("Part1: %d\n", part1)
-
-	part2 := calcLargestArea(redTiles, greenAndRedTiles).Area
-	printMap(greenAndRedTiles)
-	fmt.Printf("Part2: %d\n", part2)
+	bounds := fillGreenTiles(redTiles)
+	area1, area2 := calcLargestArea(redTiles, bounds)
+	fmt.Printf("Part1: %d\n", area1.Area)
+	fmt.Printf("Part2: %d\n", area2.Area)
 }
